@@ -6,9 +6,12 @@
     </head>
     <body style="background: gray">
         <canvas style="background: whitesmoke" id="plot" width=800 height=600></canvas>
+        <h2>Instructions</h2>
+        <p>open the console (F12) and graph what you like</p>
+        <p>try p.plot(x => Math.cos(x));</p>
     </body>
 </html>
 <script>
-var plt = new Plot(document.getElementById("plot"));
-plt.plot(x => Math.sin(x));
+var p = new Plot(document.getElementById("plot"));
+p.plot(x => Math.sin(x));
 </script>

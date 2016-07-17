@@ -1,6 +1,4 @@
-
 function Plot(canvas) {
-    var c = canvas.getContext('2d'),
         r = {
             x:[-10,10],
             y:[-10,10] 
@@ -19,6 +17,7 @@ function Plot(canvas) {
     return {
         plot: function(func){
             var i,j,x,y,
+                c = canvas.getContext('2d'),
                 w = canvas.width,
                 xTransform = pxToLineSpace(canvas.width,      r.x[0],r.x[1]),
                 yTransform = lineSpaceToPx(canvas.height * -1,r.y[0],r.y[1]);
@@ -32,13 +31,12 @@ function Plot(canvas) {
                 y = func(x);
                 //transform y to pixels
                 j = yTransform(y);
-                console.log(j);
                 c.lineTo(i,j);
             }
             c.stroke();
         },
         clear: function(){
-            c.clearRect(0,0,w,h);
+            canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
         }
     };
 }
