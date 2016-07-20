@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>sound oscilloscope</title>
+        <script src="microphone.js"></script>
+        <script src="draw.js"></script>
+        <script src="oscilloscope.js"></script>
+    </head>
+    <body style="background-color: gray">
+        <canvas id="plot" width=1024 height=300></canvas>
+    </body>
+</html>
+<script>
+var mic = Microphone();
+var graph = Graph();
+var scope = Oscilloscope(mic,graph);
+
+</script>
