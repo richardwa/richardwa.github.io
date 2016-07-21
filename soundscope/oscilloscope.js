@@ -1,37 +1,86 @@
-function Oscilloscope(graph){
+"use strict"
+
+var CircularBuffer = (bufsize) => {
+    var buffer = new Float32Array(bufsize), 
+        head = 0,
+        tail = 0,
+        length = () => tail >= head ? tail - head : bufsize - (head - tail);
+    return {
+        append: (data) => {
+            if (data.length > bufsize - length()){
+                console.log("buffer overrun");
+            }
+            var right;//size to right of tail
+            while (data.length > 0){
+                right = bufsize - tail;
+                if (right > data.length){
+                    //place data into right side
+                    buffer.set(data, tail);
+                    if (tail < head && head <= tail + data.length){
+                        head = (tail + data.length + 1) % bufsize;
+                    }
+                    tail = (tail + data.length) % bufsize;
+                    break;
+                } else {
+                    buffer.set(data.slice(0,right), tail);
+                    if (head > tail || head == 0){
+                        head = 1;
+                    }
+                    tail = 0;
+                    data = data.slice(right);
+                }
+            }
+            //console.log(buffer,head,tail);
+        },
+        length: length,
+        consume: (size) => {
+            var len = Math.min(size, length()),
+                ret = new Float32Array(len),
+                right = bufsize - head;
+            if (size > len){
+                console.log("buffer underrun")
+            }
+            if (right > len){
+                ret.set(buffer.slice(head, head + len));
+            } else {
+                ret.set(buffer.slice(head));
+                ret.set(buffer.slice(0,len - right));
+            }
+            head = (head + len) % bufsize;
+            return ret;
+        }
+    }
+}
+
+var Oscilloscope = (graph, bufsize) => {
     //default settings
     var settings = {
-        level:0,
-        type:"rising"
-    };
-
-    //public method for setting trigger
-    this.setTrigger = function(o){
-        settings = o;
-    };
-
-    function getTrigger(settings, buffer){
-        var level = settings.level + 128;
-        var condition = {
+            level: 0.0,
+            type: "rising"
+        },
+        triggerTypes = {
             rising:  (prev,curr) => prev === true && curr === false,
             falling: (prev,curr) => prev === false && curr === true,
             toggle:  (prev,curr) => prev !== curr
-        }[settings.type];
+        },
+        buffer = CircularBuffer(bufsize);
 
-        var previous = buffer[0] < trigger;
-        for (var i = 1; i < buffer.length; i++){
-            var current = buffer[i] < trigger;
-            if (condition(previous, current)){
-                return i;
-            }
-            previous = current;
+    return {
+        setTrigger: (o) => {
+            settings = o;
+        },
+        onData: buffer.append,
+        getData: (len) => {
+            var level = settings.level,
+                condition = triggerTypes[settings.type];
+                previous = buffer.consume(1)[0] < level;
+
+            do {
+                let current = buffer.consume(1)[0] < level;
+            } while (!condition(previous, current));
+
+            return buffer.consume(len);
         }
-    }
-    
-
-    source.onData(function(buffer){
-        var offset = getTrigger(settings, buffer);
-        graph.draw(buffer, offset);
-    });
+    };
 }
 
